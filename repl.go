@@ -59,6 +59,16 @@ func (r *REPL) Run() {
 		case "help\n":
 			fmt.Println(r.GetHelpText())
 			break
+		case "author\n":
+			if r.Author != "" {
+				fmt.Println(r.Author)
+			}
+			break
+		case "author-email\n":
+			if r.AuthorEmail != "" {
+				fmt.Println(r.AuthorEmail)
+			}
+			break
 		case "version\n":
 			fmt.Println(r.Version)
 			break

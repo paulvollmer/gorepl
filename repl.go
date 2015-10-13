@@ -43,6 +43,8 @@ func NewREPL(name string) *REPL {
 	r.Command("author-email", "the author email address", func(ctx Context) {
 		ctx.Writeln(r.AuthorEmail)
 	})
+	// initialize an empty unknown action to run save (null pointer exception...)
+	r.CommandUnknown(func(ctx Context) {})
 	return &r
 }
 

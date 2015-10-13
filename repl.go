@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type REPL struct {
@@ -14,29 +15,42 @@ type REPL struct {
 	AuthorEmail    string
 	WelcomeMessage string
 	Commands       []Command
+	History        []string
 }
 
 func NewREPL(name string) *REPL {
 	r := REPL{}
+	// Set some default values
 	r.Name = name
 	r.Prompt = name + ">"
 	r.Version = "0.0.0"
 	r.WelcomeMessage = "Welcome to the " + name + " REPL (" + r.Version + ")\nType 'help' to get a list of all commands.\nType 'exit' to get out here...\n\n"
+	// Set some default commands
+	r.Command("help", "display this text", func(ctx Context) {
+		ctx.Writeln(r.GetHelpText())
+	})
+	r.Command("version", "version of the application", func(ctx Context) {
+		ctx.Writeln(r.Version)
+	})
+	r.Command("exit", "exit the application", func(ctx Context) {
+		ctx.Writeln("Bye bye...")
+		os.Exit(0)
+	})
+	r.Command("author", "the author", func(ctx Context) {
+		ctx.Writeln(r.Author)
+	})
+	r.Command("author-email", "the author email address", func(ctx Context) {
+		ctx.Writeln(r.AuthorEmail)
+	})
 	return &r
 }
 
 func (r *REPL) GetHelpText() string {
-	commandList := ""
+	commandList := "help:\n"
 	for _, v := range r.Commands {
 		commandList += "- " + v.Keyword + " --- " + v.Description + "\n"
 	}
-	return `help:
-- help         display this text
-- author       the author
-- author-email the author email address
-- exit         exit the application
-- version      version of the application
-` + commandList
+	return commandList
 }
 
 func (r *REPL) Command(keyword, description string, action ContextFn) {
@@ -49,43 +63,19 @@ func (r *REPL) Run() {
 	for {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print(r.Prompt + " ")
-		text, err := reader.ReadString('\n')
+		textInput, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Print("REPL-ERROR!", err)
 		}
+		text := strings.TrimSpace(textInput)
+		r.History = append(r.History, text)
 
-		// Check basic commands
-		switch text {
-		case "help\n":
-			fmt.Println(r.GetHelpText())
-			break
-		case "author\n":
-			if r.Author != "" {
-				fmt.Println(r.Author)
-			}
-			break
-		case "author-email\n":
-			if r.AuthorEmail != "" {
-				fmt.Println(r.AuthorEmail)
-			}
-			break
-		case "version\n":
-			fmt.Println(r.Version)
-			break
-		case "exit\n":
-			fmt.Println("Bye bye...")
-			os.Exit(0)
-			break
-		default:
-			// println("default...")
-		}
-
-		// Check custom commands
+		// Check if the command exist...
 		for _, v := range r.Commands {
-			if v.Keyword+"\n" == text {
+			if v.Keyword == text {
 				ctx := Context{}
 				ctx.Keyword = v.Keyword
-				ctx.History = "TODO: history"
+				ctx.History = r.History
 				v.Action(ctx)
 			}
 		}

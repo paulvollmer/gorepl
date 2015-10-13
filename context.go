@@ -6,7 +6,7 @@ import (
 
 type Context struct {
 	Keyword string
-	History string
+	History []string
 }
 
 func (c *Context) Write(a ...interface{}) {

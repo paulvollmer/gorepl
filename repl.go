@@ -15,6 +15,7 @@ type REPL struct {
 	AuthorEmail    string
 	WelcomeMessage string
 	Commands       []Command
+	commandUnknown Command
 	History        []string
 }
 
@@ -58,6 +59,11 @@ func (r *REPL) Command(keyword, description string, action ContextFn) {
 	r.Commands = append(r.Commands, c)
 }
 
+func (r *REPL) CommandUnknown(action ContextFn) {
+	c := Command{"unknown", "unknown command", action}
+	r.commandUnknown = c
+}
+
 func (r *REPL) Run() {
 	fmt.Print(r.WelcomeMessage)
 	for {
@@ -71,13 +77,21 @@ func (r *REPL) Run() {
 		r.History = append(r.History, text)
 
 		// Check if the command exist...
+		commandFound := false
 		for _, v := range r.Commands {
 			if v.Keyword == text {
 				ctx := Context{}
 				ctx.Keyword = v.Keyword
 				ctx.History = r.History
+				commandFound = true
 				v.Action(ctx)
 			}
+		}
+
+		if !commandFound {
+			ctx := Context{}
+			ctx.Keyword = text
+			r.commandUnknown.Action(ctx)
 		}
 	}
 }

@@ -11,6 +11,8 @@ func main() {
 	// Set the commands and the handlers.
 	app.Command("hello", "some words about the 'hello' command", func(ctx repl.Context) {
 		ctx.Writeln(ctx.Keyword, "world")
+	app.CommandUnknown(func(ctx repl.Context) {
+		ctx.Writef("the command '%s' is unknown...\n", ctx.Keyword)
 	})
 
 	// Run the REPL as an infinite loop.
